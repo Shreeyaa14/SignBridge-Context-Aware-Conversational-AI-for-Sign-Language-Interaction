@@ -18,7 +18,7 @@ straight back.
 5. The hearing person reads the sentence or listens to it, then answers by typing
    or speaking. Their answer appears on screen for the signer.
 
-## Under the hood
+## How it works technically
 
 - **Sign recognition:** MediaPipe Holistic in the browser (hands, upper body,
   eyebrows, mouth) → a bidirectional GRU with attention that picks from 23
