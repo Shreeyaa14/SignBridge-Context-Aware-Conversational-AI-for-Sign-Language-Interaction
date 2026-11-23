@@ -1,4 +1,4 @@
-# SignBridge - Context-Aware Conversational AI-for-Sign-Language-Interaction
+# SignBridge: Context-Aware Conversational AI for Sign Language Interaction
 
 Most service counters have no one who can sign. For a Deaf person, that usually
 means pen and paper, lip-reading, or waiting for an interpreter. SignBridge is a
