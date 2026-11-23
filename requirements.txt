@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+numpy
+torch
+scikit-learn
+requests
+httpx  # only for tests (FastAPI TestClient)
+github
