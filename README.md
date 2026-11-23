@@ -1,10 +1,9 @@
-# SignBridge: confidence-aware conversational interface for isolated ASL signs
+# SignBridge-Context-Aware-Conversational-AI-for-Sign-Language-Interaction
 
-SignBridge recognises a small vocabulary of isolated ASL signs from a webcam and
-uses an LLM to turn them into a conversation with a campus help desk. The
-research question is whether giving the LLM the recogniser's **confidence and
-alternative candidates**, plus a simple **clarification policy**, reduces wrong
-answers when recognition is uncertain, without making the system ask too often.
+Most sign-language translation systems map a sign sequence to text in one pass and assume the recogniser is right. In a service setting, a confident but wrong answer is worse than a clarifying question. SignBridge is a two-way conversational prototype
+in which a landmark-based recogniser for 23 isolated ASL signs (MediaPipe features, a bidirectional GRU with temporal attention,
+temperature-calibrated confidence) feeds a large language model with the top-3 candidates, their confidences and the dialogue history. A code-level policy asks for clarification when confidence is below 0.50 or the top-two margin is below 0.10.
+This report covers the base system and my individual contribution: Qwen2.5-3B-Instruct run locally through Ollama with plain zero-shot prompting, the baseline against which my teammates' techniques (chain-of-thought, LoRA fine-tuning, retrieved few-shot examples) are compared. The recogniser reaches 89.3% top-1 and 92.9% top-3 accuracy on held-out recordings. On a 208-case test set with injected recognition errors, a reference implementation of the policy lowers the wrong-answer rate on ambiguous inputs from 53.4% (no confidence information) to 4.5%. Confident recognition errors remain uncatchable by design. It also covers user scenarios, crash tests, opportunities and limits of the LLM, human-AI teaming and ethics.
 
 ## Pipeline
 
@@ -27,18 +26,9 @@ WATER, DOCTOR, APPOINTMENT, TOMORROW, OFFICE.
 
 In our 4-member group project, each member evaluates a distinct LLM architecture and prompting strategy. This repository implements and features **Member 1's Approach (Qwen2.5-3B-Instruct with Plain Zero-Shot Prompting)** as the foundational anchor baseline that the other three team members compete against:
 
-| Member | LLM Architecture | Prompting Technique | Role & Fit in Competition | Key Trade-offs |
+| LLM Architecture | Prompting Technique | Role & Fit in Competition | Key Trade-offs |
 |---|---|---|---|---|
-| **Member 1 (Ours)** | **Qwen2.5-3B-Instruct** | **Plain Prompting (Zero-Shot)** | **Foundational Anchor Baseline to Beat** | **★ Active Engine:** Zero fine-tuning, runs on edge laptop CPU, 98.0% task success with confidence gate. |
-| Member 2 | Llama-3.2-3B-Instruct | Chain-of-Thought (CoT) Prompting | Reasoning Cogitator | Writes step-by-step reasoning before emitting JSON. Tests whether reasoning cuts errors on `medium_wrong` and `near_tie`. |
-| Member 3 | Gemma (2B or 4B Instruct) | LoRA Fine-Tuning (Hugging Face PEFT) | Domain Fine-Tuned Specialist | Trained on (history, signs, confidence) pairs on Colab T4 GPU. Tests weight specialization. |
-| Member 4 | Phi-3.5-mini / SmolLM2-1.7B | Few-Shot Prompting with Retrieved Examples | Dynamic In-Context Retriever | Dynamically injects top-K similar solved turns into prompt. Tests whether sub-2B models can compete. |
-
-### Which is the Best LLM?
-* **Member 1 (Qwen2.5-3B-Instruct Plain Prompting) is the overall winning practical choice for real-time edge deployment**: It achieves **98.0% task success** and lowers the inappropriate response rate to **4.5%** with zero training cost, zero GPU overhead, and minimal token latency.
-* **Member 2 (CoT)** offers marginal benefits when the hard confidence gate is ablated, but adds 2x latency.
-* **Member 3 (LoRA)** specializes in domain syntax, but introduces complex training and weight-distribution overhead.
-* **Member 4 (Few-Shot)** allows smaller 1.7B models to approach 3B accuracy, but increases prompt context size.
+| **Qwen2.5-3B-Instruct** | **Plain Prompting (Zero-Shot)** | **Foundational Anchor Baseline to Beat** | **★ Active Engine:** Zero fine-tuning, runs on edge laptop CPU, 98.0% task success with confidence gate. |
 
 ## Experimental comparison
 
